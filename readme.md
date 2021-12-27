@@ -7,7 +7,7 @@ LED Lighting Project for a mirror using the RP2040 and WS2812B LEDs
  - [x] Ability to Turn lights on and off
  - [x] 3d Printed enclosure for lights
  - [ ] Ability to adjust "Warmth" of colour
- - [ ] Ability to Adjust Brightness
+ - [x] Ability to Adjust Brightness (long Press)
 
 ## Parts List
  - [Tiny2040](https://shop.pimoroni.com/products/tiny-2040)

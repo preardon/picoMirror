@@ -21,8 +21,15 @@ const int PIN_TX = 0;
 const int PIN_PWR = 2;
 const int NUM_PX = 42;
 
-const uint32_t colour_warmWhite = 0xfdf4dc;
+const uint32_t colour_warmWhite_5 = 0xf4fdcc;
+const uint32_t colour_warmWhite_4 = 0xdce4b8;
+const uint32_t colour_warmWhite_3 = 0xc4cba4;
+const uint32_t colour_warmWhite_2 = 0xacb290;
+const uint32_t colour_warmWhite_1 = 0x84997c;
 const uint32_t colour_coolWhite = 0xffffff;
+
+
+const uint longPress_Threshold = 3; //250ms x 3
 
 void setAllPixels(uint len, uint32_t colour) {
     for(int i = 0; i < len; i++){
@@ -46,33 +53,73 @@ int main() {
 
     ws2812_program_init(pio, sm, offset, PIN_TX, 800000, false);
 
-    int t = 0;
-   
-    bool warm = false;
-    bool buttonPressed = gpio_get(PIN_PWR);
+    //bool buttonPressed = gpio_get(PIN_PWR);
+    bool lightOn = false;
+    uint brightness = 8;
+    uint buttonPressedLength = 0;
+
+    uint32_t currentColour = colour_warmWhite_5;
 
     while(1)
     {
-        bool buttonState = gpio_get(PIN_PWR);
+        bool buttonPressed = gpio_get(PIN_PWR);
 
-        if(buttonState != buttonPressed)
+        if(buttonPressed)
         {
-            if(buttonState)
+            //Pressed, work how how long of a press
+            buttonPressedLength += 1;
+            printf("Button Pressed : %d \n", buttonPressedLength);
+        }
+        else if(buttonPressedLength > 0)
+        {
+            if(buttonPressedLength < longPress_Threshold )
+            {
+                //Short Press
+                if(!lightOn)
                 {
-                if(warm){
-                    setAllPixels(NUM_PX, colour_warmWhite);
-                    warm = false;
+                    //Turn on Lights
+                    setAllPixels(NUM_PX, currentColour);
+                    lightOn = true;
                 }
-                else{
-                    setAllPixels(NUM_PX, colour_coolWhite);
-                    warm = true;
+                else
+                {
+                    //Turn Light Off
+                    setAllPixels(NUM_PX, 0);
+                    lightOn = false;
                 }
             }
             else
             {
-                setAllPixels(NUM_PX, 0);
+                //LongPress
+                brightness += 1;
+                if(brightness > 4) brightness = 0;
+
+                switch(brightness)
+                {
+                    case 0:
+                        currentColour = colour_warmWhite_5;
+                        break;
+                    case 1:
+                        currentColour = colour_warmWhite_4;
+                        break;
+                    case 2:
+                        currentColour = colour_warmWhite_3;
+                        break;
+                    case 3:
+                        currentColour = colour_warmWhite_2;
+                        break;
+                    case 4:
+                        currentColour = colour_warmWhite_1;
+                        break;
+                    default:
+                        currentColour = 0;
+                }
+                setAllPixels(NUM_PX, currentColour);
+                lightOn = true;
             }
-            buttonPressed = buttonState;
+            
+            // Button no longer Pressed, Reset
+            buttonPressedLength = 0;
         }
 
         sleep_ms(250);
